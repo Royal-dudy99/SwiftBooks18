@@ -1,111 +1,112 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const compression = require('compression');
-require('dotenv').config();
+const dotenv = require('dotenv');
 
-// Routes
-const transactionRoutes = require('./routes/transactions.js');
-const authRoutes = require('./routes/auth');
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Security middleware
-app.use(helmet());
-app.use(compression());
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-
+// In-memory storage (instead of MongoDB)
 let transactions = [
   {
     id: 1,
     type: 'expense',
-    amount: 500,
+    amount: 250,
     category: 'Food',
-    description: 'Lunch',
-    date: new Date().toISOString()
+    description: 'Lunch at cafe',
+    date: new Date('2025-08-22').toISOString(),
+    account: 'Cash'
+  },
+  {
+    id: 2,
+    type: 'income',
+    amount: 5000,
+    category: 'Salary',
+    description: 'Monthly salary',
+    date: new Date('2025-08-20').toISOString(),
+    account: 'Bank'
+  },
+  {
+    id: 3,
+    type: 'expense',
+    amount: 100,
+    category: 'Transport',
+    description: 'Bus fare',
+    date: new Date('2025-08-21').toISOString(),
+    account: 'Cash'
   }
 ];
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+// Get all transactions
+app.get('/api/transactions', (req, res) => {
+  res.json(transactions);
 });
-app.use('/api/', limiter);
 
-// CORS
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-url.netlify.app'] 
-    : ['http://localhost:3000'],
-  credentials: true
-}));
-
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Logging
-app.use(morgan('combined'));
-
-// Database connection
-// mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/swiftbooks', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// })
-// .then(() => console.log('Connected to MongoDB'))
-// .catch(err => console.error('MongoDB connection error:',
-//  err));
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/transactions', transactionRoutes);
-
-
+// Add new transaction
 app.post('/api/transactions', (req, res) => {
-  const { type, amount, category, description } = req.body;
+  try {
+    const { type, amount, category, description, account } = req.body;
+    
+    const newTransaction = {
+      id: Date.now(),
+      type,
+      amount: parseFloat(amount),
+      category: category || 'Other',
+      description: description || '',
+      account: account || 'Cash',
+      date: new Date().toISOString()
+    };
+    
+    transactions.push(newTransaction);
+    console.log('New transaction added:', newTransaction);
+    
+    res.json({ success: true, transaction: newTransaction });
+  } catch (error) {
+    console.error('Error adding transaction:', error);
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// Get transaction by ID
+app.get('/api/transactions/:id', (req, res) => {
+  const transaction = transactions.find(t => t.id === parseInt(req.params.id));
+  if (!transaction) {
+    return res.status(404).json({ success: false, error: 'Transaction not found' });
+  }
+  res.json(transaction);
+});
+
+// Update transaction
+app.put('/api/transactions/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = transactions.findIndex(t => t.id === id);
   
-  const newTransaction = {
-    id: Date.now(),
-    type,
-    amount: parseFloat(amount),
-    category,
-    description,
-    date: new Date().toISOString()
-  };
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Transaction not found' });
+  }
   
-  transactions.push(newTransaction);
-  res.json({ success: true, transaction: newTransaction });
+  transactions[index] = { ...transactions[index], ...req.body };
+  res.json({ success: true, transaction: transactions[index] });
 });
 
-
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+// Delete transaction
+app.delete('/api/transactions/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = transactions.findIndex(t => t.id === id);
+  
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Transaction not found' });
+  }
+  
+  transactions.splice(index, 1);
+  res.json({ success: true, message: 'Transaction deleted' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
-
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-module.exports = app;
-

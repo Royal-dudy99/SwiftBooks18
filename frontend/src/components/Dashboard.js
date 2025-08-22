@@ -1,29 +1,29 @@
-// import React, { useState, useEffect } from 'react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import { useQuery } from 'react-query';
-import { motion } from 'framer-motion';
-import axios from 'axios';
-
-const Dashboard = ({ currency }) => {
-  const [summary, setSummary] = useState({
+const Dashboard = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [stats, setStats] = useState({
     totalIncome: 0,
     totalExpenses: 0,
-    balance: 0,
-    transactionCount: 0
+    balance: 0
   });
 
-  const { data: transactions, isLoading } = useQuery(
-    'transactions',
-    () => axios.get('/api/transactions').then(res => res.data),
-    {
-      onSuccess: (data) => {
-        calculateSummary(data);
-      }
-    }
-  );
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
-  const calculateSummary = (transactions) => {
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/transactions');
+      const data = await response.json();
+      setTransactions(data);
+      calculateStats(data);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  };
+
+  const calculateStats = (transactions) => {
     const income = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
@@ -31,109 +31,163 @@ const Dashboard = ({ currency }) => {
     const expenses = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
-
-    setSummary({
+    
+    setStats({
       totalIncome: income,
       totalExpenses: expenses,
-      balance: income - expenses,
-      transactionCount: transactions.length
+      balance: income - expenses
     });
   };
 
-  const formatCurrency = (amount) => {
-    const symbols = { INR: '₹', USD: '$', EUR: '€' };
-    return `${symbols[currency] || '₹'}${amount.toLocaleString()}`;
+  const addQuickTransaction = async (type) => {
+    const amount = prompt(`Enter ${type} amount:`);
+    const description = prompt('Enter description:');
+    
+    if (!amount || isNaN(amount)) return;
+
+    try {
+      const response = await fetch('http://localhost:5000/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type,
+          amount: parseFloat(amount),
+          category: type === 'income' ? 'Other Income' : 'Other Expense',
+          description,
+          account: 'Cash'
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        fetchTransactions(); // Refresh data
+        alert('Transaction added successfully!');
+      } else {
+        alert('Failed to add transaction!');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error adding transaction!');
+    }
   };
 
-  if (isLoading) {
-    return (
-      <div className="loading">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Food': '🍕',
+      'Transport': '🚗',
+      'Shopping': '🛒',
+      'Entertainment': '🎬',
+      'Health': '🏥',
+      'Education': '📚',
+      'Salary': '💰',
+      'Other Income': '💵',
+      'Other Expense': '💸'
+    };
+    return icons[category] || '📝';
+  };
+
+  const formatCurrency = (amount) => {
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short'
+    });
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <h1 className="page-title">Dashboard</h1>
-      
-      <div className="grid grid-3">
-        <div className="card">
-          <div className="summary-card">
-            <i className="fas fa-arrow-up text-success"></i>
-            <div>
-              <h3>Total Income</h3>
-              <p className="amount text-success">{formatCurrency(summary.totalIncome)}</p>
-            </div>
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h1>💰 SwiftBooks</h1>
+        <p>Your Smart Money Manager</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="dashboard-stats">
+        <div className="stat-card income-card">
+          <div className="stat-icon">📈</div>
+          <div className="stat-info">
+            <h3>Total Income</h3>
+            <div className="amount income">{formatCurrency(stats.totalIncome)}</div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="summary-card">
-            <i className="fas fa-arrow-down text-danger"></i>
-            <div>
-              <h3>Total Expenses</h3>
-              <p className="amount text-danger">{formatCurrency(summary.totalExpenses)}</p>
-            </div>
+        <div className="stat-card expense-card">
+          <div className="stat-icon">📉</div>
+          <div className="stat-info">
+            <h3>Total Expenses</h3>
+            <div className="amount expense">{formatCurrency(stats.totalExpenses)}</div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="summary-card">
-            <i className="fas fa-wallet"></i>
-            <div>
-              <h3>Balance</h3>
-              <p className={`amount ${summary.balance >= 0 ? 'text-success' : 'text-danger'}`}>
-                {formatCurrency(summary.balance)}
-              </p>
+        <div className="stat-card balance-card">
+          <div className="stat-icon">💳</div>
+          <div className="stat-info">
+            <h3>Balance</h3>
+            <div className={`amount ${stats.balance >= 0 ? 'positive' : 'negative'}`}>
+              {formatCurrency(stats.balance)}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-2">
-        <div className="card">
-          <h3>Recent Transactions</h3>
-          <div className="transaction-list">
-            {transactions?.slice(0, 5).map(transaction => (
-              <div key={transaction._id} className="transaction-item">
-                <div>
-                  <strong>{transaction.category}</strong>
-                  <p>{transaction.description}</p>
-                </div>
-                <div className={`amount ${transaction.type === 'income' ? 'text-success' : 'text-danger'}`}>
-                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <button 
+          className="action-btn income-btn"
+          onClick={() => addQuickTransaction('income')}
+        >
+          <span>➕</span>
+          Add Income
+        </button>
+        <button 
+          className="action-btn expense-btn"
+          onClick={() => addQuickTransaction('expense')}
+        >
+          <span>➖</span>
+          Add Expense
+        </button>
+        <button className="action-btn transfer-btn">
+          <span>🔄</span>
+          Transfer
+        </button>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="recent-transactions">
+        <div className="section-header">
+          <h2>Recent Transactions</h2>
+          <span className="transaction-count">{transactions.length} total</span>
+        </div>
+
+        <div className="transaction-list">
+          {transactions.slice(-10).reverse().map((transaction) => (
+            <div key={transaction.id} className="transaction-item">
+              <div className={`transaction-icon ${transaction.type}`}>
+                {getCategoryIcon(transaction.category)}
+              </div>
+              <div className="transaction-details">
+                <div className="transaction-description">{transaction.description}</div>
+                <div className="transaction-meta">
+                  <span className="transaction-category">{transaction.category}</span>
+                  <span className="transaction-date">{formatDate(transaction.date)}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="card">
-          <h3>Quick Actions</h3>
-          <div className="quick-actions">
-            <button className="btn btn-primary">
-              <i className="fas fa-plus"></i>
-              Add Income
-            </button>
-            <button className="btn btn-danger">
-              <i className="fas fa-minus"></i>
-              Add Expense
-            </button>
-            <button className="btn btn-secondary">
-              <i className="fas fa-exchange-alt"></i>
-              Transfer
-            </button>
-          </div>
+              <div className={`transaction-amount ${transaction.type}`}>
+                {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
 export default Dashboard;
-
