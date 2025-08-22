@@ -17,6 +17,18 @@ const app = express();
 app.use(helmet());
 app.use(compression());
 
+
+let transactions = [
+  {
+    id: 1,
+    type: 'expense',
+    amount: 500,
+    category: 'Food',
+    description: 'Lunch',
+    date: new Date().toISOString()
+  }
+];
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -51,6 +63,25 @@ app.use(morgan('combined'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
+
+
+app.post('/api/transactions', (req, res) => {
+  const { type, amount, category, description } = req.body;
+  
+  const newTransaction = {
+    id: Date.now(),
+    type,
+    amount: parseFloat(amount),
+    category,
+    description,
+    date: new Date().toISOString()
+  };
+  
+  transactions.push(newTransaction);
+  res.json({ success: true, transaction: newTransaction });
+});
+
+
 
 // Health check
 app.get('/api/health', (req, res) => {
