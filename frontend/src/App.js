@@ -1,100 +1,115 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { Toaster } from 'react-hot-toast';
-import axios from 'axios';
-
-// Components
+import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import TransactionForm from './components/TransactionForm';
+import AddTransaction from './components/AddTransaction';
 import Analytics from './components/Analytics';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-
-// Styles
 import './App.css';
 
-// React Query Client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 2,
-      staleTime: 5 * 60 * 1000,
-    },
-  },
-});
-
-// Axios default config
-axios.defaults.baseURL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-url.com' 
-  : 'http://localhost:5000';
-
 function App() {
-  // const [user, setUser] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState('light');
-  const [currency, setCurrency] = useState('INR');
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Check if user is already logged in on app start
   useEffect(() => {
-    // Load user preferences
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    const savedCurrency = localStorage.getItem('currency') || 'INR';
-    setTheme(savedTheme);
-    setCurrency(savedCurrency);
-    
-    // Apply theme
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const checkAuth = async () => {
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+
+      if (savedToken && savedUser) {
+        try {
+          // Verify token with backend
+          const response = await fetch('http://localhost:5000/api/auth/profile', {
+            headers: {
+              'Authorization': `Bearer ${savedToken}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setUser(data.user);
+            setToken(savedToken);
+          } else {
+            // Token expired or invalid
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
+  const handleLogin = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
   };
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="app">
-          <Navbar 
-            toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-            toggleTheme={toggleTheme}
-            theme={theme}
-          />
-          
-          <div className="app-container">
-            <Sidebar 
-              isOpen={sidebarOpen}
-              onClose={() => setSidebarOpen(false)}
-            />
-            
-            <main className="main-content">
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard currency={currency} />} />
-                <Route path="/add-transaction" element={<TransactionForm currency={currency} />} />
-                <Route path="/analytics" element={<Analytics currency={currency} />} />
-              </Routes>
-            </main>
-          </div>
-          
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: theme === 'dark' ? '#333' : '#fff',
-                color: theme === 'dark' ? '#fff' : '#333',
-              },
-            }}
-          />
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setToken(null);
+  };
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading SwiftBooks...</p>
         </div>
-      </Router>
-    </QueryClientProvider>
+      </div>
+    );
+  }
+
+  // If not logged in, show login page
+  if (!user || !token) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // If logged in, show main app
+  return (
+    <Router>
+      <div className="App">
+        <header className="app-header">
+          <div className="header-content">
+            <div className="logo">
+              💰 SwiftBooks
+            </div>
+            <nav className="nav-links">
+              <a href="/" className="nav-link">Dashboard</a>
+              <a href="/add-transaction" className="nav-link">Add Transaction</a>
+              <a href="/analytics" className="nav-link">Analytics</a>
+            </nav>
+            <div className="user-info">
+              <span>Welcome, {user.name}!</span>
+              <button onClick={handleLogout} className="logout-btn">
+                Logout
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Dashboard user={user} token={token} />} />
+            <Route path="/add-transaction" element={<AddTransaction user={user} token={token} />} />
+            <Route path="/analytics" element={<Analytics user={user} token={token} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
 export default App;
-

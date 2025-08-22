@@ -1,9 +1,11 @@
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const schema = yup.object({
@@ -37,11 +39,11 @@ const TransactionForm = ({ currency }) => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries('transactions');
-        toast.success('Transaction added successfully!');
+        toast.success('✅ Transaction added successfully!');
         reset();
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to add transaction');
+        toast.error(error.response?.data?.message || '❌ Failed to add transaction');
       }
     }
   );
@@ -119,6 +121,25 @@ const TransactionForm = ({ currency }) => {
               <option value="EUR">EUR (€)</option>
             </select>
           </div>
+          
+  <div className="transaction-form">
+    <h1>Add Transaction</h1>
+
+    <div className="card">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Your existing form elements here */}
+      </form>
+    </div>
+
+    {/* Place ToastContainer inside return JSX */}
+    <ToastContainer 
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar
+      newestOnTop
+      closeOnClick
+    />
+  </div>
 
           <button
             type="submit"
@@ -135,6 +156,7 @@ const TransactionForm = ({ currency }) => {
                 <i className="fas fa-plus"></i>
                 Add Transaction
               </>
+                 
             )}
           </button>
         </form>
@@ -142,6 +164,7 @@ const TransactionForm = ({ currency }) => {
     </div>
   );
 };
+
 
 export default TransactionForm;
 
