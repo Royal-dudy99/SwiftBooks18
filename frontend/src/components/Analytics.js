@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from 'react-query';
+import { Pie, Bar } from 'react-chartjs-2';
 // import { Bar, Pie, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
