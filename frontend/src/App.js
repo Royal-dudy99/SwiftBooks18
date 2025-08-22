@@ -31,7 +31,7 @@ axios.defaults.baseURL = process.env.NODE_ENV === 'production'
   : 'http://localhost:5000';
 
 function App() {
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('light');
   const [currency, setCurrency] = useState('INR');
