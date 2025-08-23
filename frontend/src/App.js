@@ -18,8 +18,6 @@ import Toolbar from '@mui/material/Toolbar';
 const apiBase = process.env.REACT_APP_API_URL;
 
 function AppContent() {
-  const [allowed, setAllowed] = useState(false);
-  const [asked, setAsked] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +26,6 @@ function AppContent() {
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { mode } = useTheme();
-
 
   // Dynamically update the mobile browser/tab theme color on theme switch
   useEffect(() => {
@@ -39,15 +36,6 @@ function AppContent() {
   }, [mode]);
 
   useEffect(() => {
-    if (!asked) {
-      const pass = prompt("Site not public yet. Enter password:");
-      if (pass === "BETA_TESTER_18") setAllowed(true);
-      setAsked(true);
-    }
-  }, [asked]);
-
-  useEffect(() => {
-    if (!allowed) return;
     const checkAuth = async () => {
       const savedToken = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
@@ -73,7 +61,7 @@ function AppContent() {
       setLoading(false);
     };
     checkAuth();
-  }, [allowed]);
+  }, []);
 
   function handleLogin(userData, userToken) {
     setUser(userData);
@@ -87,14 +75,7 @@ function AppContent() {
     setToken(null);
   }
 
-  if (!allowed && asked) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '20vh', fontSize: '2rem' }}>
-        🔒 Not allowed
-      </div>
-    );
-  }
-  if (loading && allowed) {
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner">
@@ -104,7 +85,7 @@ function AppContent() {
       </div>
     );
   }
-  if ((!user || !token) && allowed && !loading) {
+  if (!user || !token) {
     return <Login onLogin={handleLogin} />;
   }
 
