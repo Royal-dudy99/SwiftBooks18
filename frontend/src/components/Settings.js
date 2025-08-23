@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import { useTheme } from './ThemeContext';
 
 const availableCurrencies = [
   { code: "INR", symbol: "₹", label: "INR (₹)" },
@@ -18,8 +19,9 @@ const availableCurrencies = [
   { code: "EUR", symbol: "€", label: "EUR (€)" }
 ];
 
-const Settings = ({ selectedCurrency, setSelectedCurrency, theme, toggleTheme }) => {
+const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
   const { t } = useTranslation();
+  const { mode, toggleTheme } = useTheme();
 
   useEffect(() => {
     const saved = localStorage.getItem("currency");
@@ -33,7 +35,6 @@ const Settings = ({ selectedCurrency, setSelectedCurrency, theme, toggleTheme })
     localStorage.setItem("currency", e.target.value);
   };
 
-  // Generate a shareable referral link for the current user (use user data if available)
   const userId = (() => {
     try {
       return JSON.parse(localStorage.getItem('user'))?.id || 'demoUser';
@@ -69,13 +70,13 @@ const Settings = ({ selectedCurrency, setSelectedCurrency, theme, toggleTheme })
           <Typography fontWeight={500}>{t('theme')}</Typography>
           <Button
             variant="outlined"
-            startIcon={theme === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+            startIcon={mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
             onClick={toggleTheme}
             sx={{ ml: 2 }}
           >
-            {theme === 'light' ? t('switch_to_dark') : t('switch_to_light')}
+            {mode === 'light' ? t('switch_to_dark') : t('switch_to_light')}
           </Button>
-          <Typography mt={1}>{t('current')}: <b>{theme.charAt(0).toUpperCase() + theme.slice(1)} {t('mode')}</b></Typography>
+          <Typography mt={1}>{t('current')}: <b>{mode.charAt(0).toUpperCase() + mode.slice(1)} {t('mode')}</b></Typography>
         </Box>
         <Box>
           <Typography fontWeight={500}>{t('refer')}</Typography>

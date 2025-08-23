@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import * as yup from 'yup';
 import axios from 'axios';
 
-// === MATERIAL UI IMPORTS ===
+// MATERIAL UI IMPORTS
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -54,7 +54,7 @@ const TransactionForm = ({ currency, token }) => {
       onSuccess: () => {
         queryClient.invalidateQueries('transactions');
         toast.success(t('transaction_added'));
-        reset({ type: 'expense', currency: currency, date: new Date().toISOString().split('T')[0] });
+        reset({ type: 'expense', currency: currency, date: new Date().toISOString().split('T') });
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || t('failed_add_transaction'));
@@ -69,10 +69,9 @@ const TransactionForm = ({ currency, token }) => {
   return (
     <Box sx={{ maxWidth: 520, m: '36px auto', px: 2 }}>
       <h1 style={{ marginBottom: 20 }}>{t('add_transaction')}</h1>
-      <Paper elevation={3} sx={{ borderRadius: 3, p: 3 }}>
+      <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: 'background.paper' }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-
             <TextField
               label={t('type')}
               select

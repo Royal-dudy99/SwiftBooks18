@@ -7,6 +7,7 @@
 body, .App {
   min-height: 100vh;
   font-family: 'Noto Serif', 'Inter', 'Segoe UI', Arial, serif;
+  /* MUI will set background dynamically; optional fallback: */
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
@@ -108,27 +109,4 @@ body, .App {
   .user-info {
     order: -1;
   }
-}
-
-.dark-theme {
-  background: linear-gradient(135deg, #191724 0%, #252634 100%) !important;
-  color: #e0e0e0;
-}
-
-.dark-theme .app-header {
-  background: rgba(30, 34, 44, 0.98) !important;
-  color: #e0e0e0;
-  box-shadow: 0 4px 32px rgba(20, 20, 30, 0.6);
-}
-.dark-theme .nav-link {
-  color: #bbb;
-}
-.dark-theme .nav-link:hover,
-.dark-theme .nav-link.active {
-  background: linear-gradient(45deg, #4e54c8, #8f94fb);
-  color: white;
-}
-
-.dark-theme .logo {
-  -webkit-text-fill-color: #60f9ea !important;
 }

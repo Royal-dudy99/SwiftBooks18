@@ -1,25 +1,45 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+// src/components/ThemeContext.js
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 
 const ThemeContext = createContext();
 
-export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light"
+export function CustomThemeProvider({ children }) {
+  const [mode, setMode] = useState(
+    localStorage.getItem('colorMode') || 'light'
   );
 
-  useEffect(() => {
-    document.body.className = "";
-    document.body.classList.add(`${theme}-theme`);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+  const toggleTheme = () => {
+    setMode((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem('colorMode', next);
+      return next;
+    });
+  };
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  const theme = useMemo(() =>
+    createTheme({
+      palette: {
+        mode,
+        primary: { main: '#497ce2' },
+        secondary: { main: '#3bb77e' },
+        background: {
+          default: mode === 'dark' ? '#191724' : '#f4f6fb',
+          paper: mode === 'dark' ? '#232535' : '#fff'
+        }
+      },
+      shape: { borderRadius: 12 },
+      typography: { fontFamily: '"Noto Serif", "Segoe UI", Arial, serif' },
+    }), [mode]
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
+    <ThemeContext.Provider value={{ mode, toggleTheme }}>
+      <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
     </ThemeContext.Provider>
   );
-};
+}
 
-export const useTheme = () => useContext(ThemeContext);
+export function useTheme() {
+  return useContext(ThemeContext);
+}
