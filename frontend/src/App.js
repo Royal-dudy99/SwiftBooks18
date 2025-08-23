@@ -10,18 +10,24 @@ import './App.css';
 const apiBase = process.env.REACT_APP_API_URL;
 
 function AppContent() {
-  // ---- PASSWORD PROTECTION START ----
+  // All hooks MUST come first!
   const [allowed, setAllowed] = useState(false);
   const [asked, setAsked] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { theme, toggleTheme } = useTheme();
 
+  // Password prompt logic (RUNS after all hooks)
   useEffect(() => {
     if (!asked) {
       const pass = prompt("Site not public yet. Enter password:");
-      if (pass === "BETA_TESTER_18") setAllowed(true); // <-- Set your secret password here
+      if (pass === "BETA_TESTER_18") setAllowed(true); // <-- Your password here
       setAsked(true);
     }
   }, [asked]);
 
+  // Conditional render FOR password protection
   if (!allowed) {
     return (
       <div style={{textAlign:'center', marginTop:'20vh', fontSize:'2rem'}}>
@@ -29,12 +35,6 @@ function AppContent() {
       </div>
     );
   }
-  // ---- PASSWORD PROTECTION END ----
-
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const checkAuth = async () => {
