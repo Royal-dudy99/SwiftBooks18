@@ -27,7 +27,8 @@ function AppContent() {
     localStorage.getItem("currency") || "INR"
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { mode, toggleTheme } = useTheme();
+  const { mode } = useTheme();
+
 
   // Dynamically update the mobile browser/tab theme color on theme switch
   useEffect(() => {
