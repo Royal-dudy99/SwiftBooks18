@@ -72,7 +72,7 @@ app.post('/api/auth/register', async (req, res) => {
     res.json({
       success: true,
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user?.name, email: user.email }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -103,7 +103,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({
       success: true,
       token,
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user?.name, email: user.email }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -220,7 +220,7 @@ app.get('/api/auth/profile', authenticateToken, (req, res) => {
   
   res.json({
     success: true,
-    user: { id: user.id, name: user.name, email: user.email }
+    user: { id: user.id, name: user?.name, email: user.email }
   });
 });
 

@@ -170,7 +170,7 @@ const Dashboard = ({ user, token }) => {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>💰 Dashboard</h1>
-        <p>Hello {user.name}, here's your financial overview</p>
+        <p>Hello {user?.name}, here's your financial overview</p>
         <button className="cta-btn" onClick={handleExportCsv} style={{ float:"right", marginTop: "-45px" }}>
           Export as CSV
         </button>

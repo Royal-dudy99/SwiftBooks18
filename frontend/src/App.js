@@ -103,7 +103,8 @@ function AppContent() {
               <a href="/analytics" className="nav-link">Analytics</a>
             </nav>
             <div className="user-info">
-              <span>Welcome, {user && user.name}!</span>
+              <span>Welcome, {user?.name || "User"}!</span>
+
               <button onClick={toggleTheme} className="logout-btn" style={{marginRight:"10px"}}>
                 {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
               </button>
