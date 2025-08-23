@@ -17,38 +17,39 @@ const Login = ({ onLogin }) => {
     });
     setError('');
   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // Choose register vs. login endpoint
+  const endpoint = isRegistering
+  ? '/api/auth/register'
+  : '/api/auth/login';
 
-    try {
-      const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        onLogin(data.user, data.token);
-      } else {
-        setError(data.error);
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
+    if (data.success) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      onLogin(data.user, data.token);
+    } else {
+      setError(data.error);
     }
-  };
+  } catch (err) {
+    setError(err.message || 'Network error. please try again');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="auth-container">

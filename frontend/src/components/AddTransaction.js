@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from 'react-query';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-// import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const schema = yup.object({
@@ -16,7 +15,7 @@ const schema = yup.object({
   date: yup.date().required('Date is required'),
 });
 
-const TransactionForm = ({ currency }) => {
+const TransactionForm = ({ currency, token }) => {
   const queryClient = useQueryClient();
   const [categories] = useState({
     income: ['salary', 'freelance', 'investment', 'bonus', 'other'],
@@ -35,7 +34,11 @@ const TransactionForm = ({ currency }) => {
   const transactionType = watch('type');
 
   const createTransactionMutation = useMutation(
-    (data) => axios.post('/api/transactions', data),
+    (data) => axios.post('/api/transactions', data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('transactions');
@@ -55,10 +58,10 @@ const TransactionForm = ({ currency }) => {
   return (
     <div className="transaction-form">
       <h1>Add Transaction</h1>
-      
       <div className="card">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-2">
+
             <div className="form-group">
               <label className="form-label">Type</label>
               <select {...register('type')} className="form-input">
@@ -121,25 +124,6 @@ const TransactionForm = ({ currency }) => {
               <option value="EUR">EUR (€)</option>
             </select>
           </div>
-          
-  <div className="transaction-form">
-    <h1>Add Transaction</h1>
-
-    <div className="card">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Your existing form elements here */}
-      </form>
-    </div>
-
-    {/* Place ToastContainer inside return JSX */}
-    <ToastContainer 
-      position="top-right"
-      autoClose={3000}
-      hideProgressBar
-      newestOnTop
-      closeOnClick
-    />
-  </div>
 
           <button
             type="submit"
@@ -156,15 +140,20 @@ const TransactionForm = ({ currency }) => {
                 <i className="fas fa-plus"></i>
                 Add Transaction
               </>
-                 
             )}
           </button>
         </form>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        newestOnTop
+        closeOnClick
+      />
     </div>
   );
 };
 
-
 export default TransactionForm;
-
