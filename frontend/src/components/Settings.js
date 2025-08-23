@@ -51,7 +51,13 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
 
   return (
     <Box maxWidth={420} mx="auto" mt={4}>
-      <Paper elevation={4} sx={{ p: 3, borderRadius: 4 }}>
+      <Paper elevation={4}
+        sx={{
+          p: 3,
+          borderRadius: 4,
+          transition: 'box-shadow 0.33s, transform 0.14s',
+          '&:hover': { boxShadow: 8, transform: 'scale(1.014)' }
+        }}>
         <Typography variant="h5" fontWeight={700} mb={2}>
           {t('settings')}
         </Typography>
@@ -66,17 +72,23 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
           </FormControl>
           <Typography mt={1}>{t('selected')}: <strong>{selectedCurrency}</strong></Typography>
         </Box>
-        <Box mb={3}>
+        <Box mb={3} display="flex" alignItems="center" gap={2}>
           <Typography fontWeight={500}>{t('theme')}</Typography>
           <Button
             variant="outlined"
             startIcon={mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
             onClick={toggleTheme}
-            sx={{ ml: 2 }}
+            sx={{
+              ml: 2,
+              transition: 'box-shadow 0.14s, transform 0.11s',
+              '&:hover': { boxShadow: 4, transform: 'scale(1.08)' }
+            }}
           >
             {mode === 'light' ? t('switch_to_dark') : t('switch_to_light')}
           </Button>
-          <Typography mt={1}>{t('current')}: <b>{mode.charAt(0).toUpperCase() + mode.slice(1)} {t('mode')}</b></Typography>
+          <Typography mt={1} ml={2} color="text.secondary">
+            <b>{mode.charAt(0).toUpperCase() + mode.slice(1)} {t('mode')}</b>
+          </Typography>
         </Box>
         <Box>
           <Typography fontWeight={500}>{t('refer')}</Typography>
@@ -88,6 +100,7 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
             variant="contained"
             startIcon={<ContentCopyIcon />}
             onClick={handleCopy}
+            sx={{ fontWeight: 600, mt: 1 }}
           >
             {t('copy_link')}
           </Button>

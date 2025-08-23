@@ -36,6 +36,10 @@ const Sidebar = ({ isOpen, onClose }) => {
             to={item.path}
             selected={location.pathname === item.path}
             onClick={onClose}
+            sx={{
+              transition: 'background 0.22s, color 0.19s, transform 0.10s',
+              '&.Mui-selected': { bgcolor: 'primary.50', color: 'primary.main', fontWeight: 700 }
+            }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.label} />

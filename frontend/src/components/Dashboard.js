@@ -13,7 +13,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalanceWallet';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
-import CircularProgress from '@mui/material/CircularProgress';
+import Skeleton from '@mui/material/Skeleton';
 
 const apiBase = process.env.REACT_APP_API_URL;
 
@@ -136,11 +136,23 @@ const Dashboard = ({ user, token, currency }) => {
     });
   };
 
+  // SKELETON LOADING UI
   if (loading) {
     return (
-      <Box sx={{ py: 6, textAlign: 'center' }}>
-        <CircularProgress sx={{ mb: 2 }} />
-        <Typography variant="body1">{t('loading_data')}</Typography>
+      <Box sx={{ py: 6, maxWidth: 900, mx: 'auto' }}>
+        <Skeleton variant="rectangular" height={56} width="40%" sx={{ mb: 2, borderRadius: 2 }} />
+        <Skeleton variant="text" width="60%" sx={{ mb: 4 }} />
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {[1, 2, 3].map(i => (
+            <Grid item xs={12} sm={4} key={i}>
+              <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 3 }} />
+            </Grid>
+          ))}
+        </Grid>
+        <Skeleton variant="text" width={200} sx={{ mb: 2 }} />
+        {[...Array(3)].map((_, idx) =>
+          <Skeleton key={idx} variant="rectangular" height={56} sx={{ mb: 2, borderRadius: 2 }} />
+        )}
       </Box>
     );
   }
@@ -159,7 +171,11 @@ const Dashboard = ({ user, token, currency }) => {
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: '6px solid #3bb77e' }}>
+          <Card sx={{
+            borderLeft: '6px solid #3bb77e',
+            transition: 'box-shadow 0.3s, transform 0.15s',
+            '&:hover': { boxShadow: 8, transform: 'scale(1.03)' }
+          }}>
             <CardContent>
               <Chip icon={<TrendingUpIcon />} color="success" label={t('total_income')} />
               <Typography mt={1} variant="h5" color="success.main" fontWeight={800}>
@@ -170,7 +186,11 @@ const Dashboard = ({ user, token, currency }) => {
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: '6px solid #d32f2f' }}>
+          <Card sx={{
+            borderLeft: '6px solid #d32f2f',
+            transition: 'box-shadow 0.3s, transform 0.15s',
+            '&:hover': { boxShadow: 8, transform: 'scale(1.03)' }
+          }}>
             <CardContent>
               <Chip icon={<TrendingDownIcon />} color="error" label={t('total_expenses')} />
               <Typography mt={1} variant="h5" color="error.main" fontWeight={800}>
@@ -181,7 +201,11 @@ const Dashboard = ({ user, token, currency }) => {
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: '6px solid #497ce2' }}>
+          <Card sx={{
+            borderLeft: '6px solid #497ce2',
+            transition: 'box-shadow 0.3s, transform 0.15s',
+            '&:hover': { boxShadow: 8, transform: 'scale(1.03)' }
+          }}>
             <CardContent>
               <Chip icon={<AccountBalanceIcon />} color="primary" label={t('balance')} />
               <Typography mt={1} variant="h5" color={stats.balance >= 0 ? "success.main" : "error.main"} fontWeight={800}>
@@ -194,12 +218,17 @@ const Dashboard = ({ user, token, currency }) => {
       </Grid>
 
       {/* Quick Actions */}
-      <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <Paper elevation={2} sx={{
+        p: 2, mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center',
+        transition: 'box-shadow 0.3s, transform 0.15s',
+        '&:hover': { boxShadow: 6 }
+      }}>
         <Button
           variant="outlined"
           color="success"
           startIcon={<TrendingUpIcon />}
           onClick={() => addQuickTransaction('income')}
+          sx={{ transition: 'box-shadow 0.2s, transform 0.1s', '&:hover': { boxShadow: 3, transform: 'scale(1.02)' } }}
         >
           {t('add_income')}
         </Button>
@@ -208,6 +237,7 @@ const Dashboard = ({ user, token, currency }) => {
           color="error"
           startIcon={<TrendingDownIcon />}
           onClick={() => addQuickTransaction('expense')}
+          sx={{ transition: 'box-shadow 0.2s, transform 0.1s', '&:hover': { boxShadow: 3, transform: 'scale(1.02)' } }}
         >
           {t('add_expense')}
         </Button>
@@ -216,6 +246,7 @@ const Dashboard = ({ user, token, currency }) => {
           color="primary"
           startIcon={<AutorenewIcon />}
           onClick={() => alert(t('feature_coming_soon'))}
+          sx={{ transition: 'box-shadow 0.2s, transform 0.1s', '&:hover': { boxShadow: 3, transform: 'scale(1.02)' } }}
         >
           {t('transfer')}
         </Button>
@@ -244,7 +275,11 @@ const Dashboard = ({ user, token, currency }) => {
         <Grid container spacing={2}>
           {transactions.slice(-10).reverse().map((transaction) => (
             <Grid item xs={12} key={transaction.id}>
-              <Card sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Card sx={{
+                px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 2,
+                transition: 'box-shadow 0.25s, transform 0.12s',
+                '&:hover': { boxShadow: 8, transform: 'scale(1.01)' }
+              }}>
                 <Box sx={{ fontSize: 34 }}>{getCategoryIcon(transaction.category)}</Box>
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography fontWeight={600}>

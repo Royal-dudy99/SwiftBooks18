@@ -10,6 +10,7 @@ import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import LoginIcon from '@mui/icons-material/Login';
+import Skeleton from '@mui/material/Skeleton';
 
 const apiBase = process.env.REACT_APP_API_URL;
 
@@ -43,14 +44,12 @@ const Login = ({ onLogin }) => {
     setLoading(true);
     setError('');
 
-    // Validate passwords match if registering
     if (isRegistering && formData.password !== confirmPassword) {
       setError(t('error') + ": " + t("Passwords do not match"));
       setLoading(false);
       return;
     }
 
-    // Choose register vs. login endpoint
     const endpoint = isRegistering
       ? `${apiBase}/api/auth/register`
       : `${apiBase}/api/auth/login`;
@@ -78,9 +77,27 @@ const Login = ({ onLogin }) => {
     }
   };
 
+  // Optional: show skeleton when loading form or during auth
+  if (loading) {
+    return (
+      <Container maxWidth="xs" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <Paper elevation={4} sx={{ mt: 8, py: 5, px: 3, borderRadius: 4 }}>
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Skeleton variant="circular" width={54} height={54} sx={{ mb: 3 }} />
+            <Skeleton variant="text" width={120} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width={170} sx={{ mb: 2 }} />
+          </Box>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rectangular" width="100%" height={52} sx={{ mb: 2 }} />
+          ))}
+        </Paper>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="xs" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <Paper elevation={4} sx={{ mt: 8, py: 5, px: 3, borderRadius: 4 }}>
+      <Paper elevation={4} sx={{ mt: 8, py: 5, px: 3, borderRadius: 4, transition: 'box-shadow 0.3s, transform 0.16s', '&:hover': { boxShadow: 10, transform: 'scale(1.015)' } }}>
         <Box display="flex" flexDirection="column" alignItems="center">
           <img src="/swiftbooks_logo.png" alt="SwiftBooks Logo" style={{ height: 54, marginBottom: 18 }} />
           <Typography component="h1" variant="h5" fontWeight={600} mb={1}>
@@ -153,7 +170,7 @@ const Login = ({ onLogin }) => {
             variant="contained"
             color="primary"
             startIcon={loading ? <CircularProgress color="inherit" size={18} /> : isRegistering ? <PersonAddAltIcon /> : <LoginIcon />}
-            sx={{ mt: 3, mb: 2, fontWeight: 700 }}
+            sx={{ mt: 3, mb: 2, fontWeight: 700, transition: 'box-shadow 0.2s, transform 0.1s', '&:hover': { boxShadow: 6, transform: 'scale(1.03)' } }}
             disabled={loading}
           >
             {isRegistering ? t("Create Account") : t("Sign In")}
@@ -173,7 +190,7 @@ const Login = ({ onLogin }) => {
                   setConfirmPassword('');
                 }}
                 size="small"
-                sx={{ fontWeight: 700, textTransform: 'none'}}
+                sx={{ fontWeight: 700, textTransform: 'none' }}
               >
                 {isRegistering ? t('Sign In') : t('Create Account')}
               </Button>

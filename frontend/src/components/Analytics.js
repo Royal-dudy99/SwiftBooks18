@@ -11,7 +11,7 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalanceWallet';
-import CircularProgress from '@mui/material/CircularProgress';
+import Skeleton from '@mui/material/Skeleton';
 
 const apiBase = process.env.REACT_APP_API_URL;
 
@@ -112,11 +112,19 @@ const Analytics = ({ user, token, currency }) => {
     downloadCsv(csv, 'swiftbooks_transactions.csv');
   };
 
+  // SKELETON LOADER
   if (loading) {
     return (
-      <Box sx={{ py: 6, textAlign: 'center' }}>
-        <CircularProgress sx={{ mb: 2 }} />
-        <Typography variant="body1">{t('loading_data')}</Typography>
+      <Box sx={{ py: 6, maxWidth: 900, mx: 'auto' }}>
+        <Skeleton variant="rectangular" height={56} width="40%" sx={{ mb: 2, borderRadius: 2 }} />
+        <Skeleton variant="text" width="60%" sx={{ mb: 4 }} />
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {[1, 2, 3].map(i => (
+            <Grid item xs={12} sm={4} key={i}>
+              <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 3 }} />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
     );
   }
@@ -137,6 +145,7 @@ const Analytics = ({ user, token, currency }) => {
           color="primary"
           startIcon={<CloudDownloadIcon />}
           onClick={handleExportCsv}
+          sx={{ transition: 'box-shadow 0.2s, transform 0.1s', '&:hover': { boxShadow: 4, transform: 'scale(1.04)' } }}
         >
           {t('export_csv')}
         </Button>
@@ -145,7 +154,11 @@ const Analytics = ({ user, token, currency }) => {
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: '6px solid #3bb77e' }}>
+          <Card sx={{
+            borderLeft: '6px solid #3bb77e',
+            transition: 'box-shadow 0.3s, transform 0.15s',
+            '&:hover': { boxShadow: 8, transform: 'scale(1.03)' }
+          }}>
             <CardContent>
               <Chip icon={<TrendingUpIcon />} color="success" label={t('total_income')} />
               <Typography mt={1} variant="h5" color="success.main" fontWeight={800}>
@@ -156,7 +169,11 @@ const Analytics = ({ user, token, currency }) => {
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: '6px solid #d32f2f' }}>
+          <Card sx={{
+            borderLeft: '6px solid #d32f2f',
+            transition: 'box-shadow 0.3s, transform 0.15s',
+            '&:hover': { boxShadow: 8, transform: 'scale(1.03)' }
+          }}>
             <CardContent>
               <Chip icon={<TrendingDownIcon />} color="error" label={t('total_expenses')} />
               <Typography mt={1} variant="h5" color="error.main" fontWeight={800}>
@@ -167,7 +184,11 @@ const Analytics = ({ user, token, currency }) => {
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: '6px solid #497ce2' }}>
+          <Card sx={{
+            borderLeft: '6px solid #497ce2',
+            transition: 'box-shadow 0.3s, transform 0.15s',
+            '&:hover': { boxShadow: 8, transform: 'scale(1.03)' }
+          }}>
             <CardContent>
               <Chip icon={<AccountBalanceIcon />} color="primary" label={t('balance')} />
               <Typography mt={1} variant="h5" color={stats.balance >= 0 ? "success.main" : "error.main"} fontWeight={800}>

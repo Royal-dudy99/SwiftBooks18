@@ -1,4 +1,3 @@
-// src/components/ThemeContext.js
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 

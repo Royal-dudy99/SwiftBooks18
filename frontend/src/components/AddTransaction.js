@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import * as yup from 'yup';
 import axios from 'axios';
 
-// MATERIAL UI IMPORTS
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -54,7 +53,7 @@ const TransactionForm = ({ currency, token }) => {
       onSuccess: () => {
         queryClient.invalidateQueries('transactions');
         toast.success(t('transaction_added'));
-        reset({ type: 'expense', currency: currency, date: new Date().toISOString().split('T') });
+        reset({ type: 'expense', currency: currency, date: new Date().toISOString().split('T')[0] });
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || t('failed_add_transaction'));
@@ -69,7 +68,7 @@ const TransactionForm = ({ currency, token }) => {
   return (
     <Box sx={{ maxWidth: 520, m: '36px auto', px: 2 }}>
       <h1 style={{ marginBottom: 20 }}>{t('add_transaction')}</h1>
-      <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: 'background.paper' }}>
+      <Paper elevation={3} sx={{ borderRadius: 3, p: 3, bgcolor: 'background.paper', transition: 'box-shadow 0.4s, transform 0.18s', '&:hover': { boxShadow: 10, transform: 'scale(1.01)' } }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
             <TextField
@@ -154,7 +153,7 @@ const TransactionForm = ({ currency, token }) => {
             fullWidth
             size="large"
             disabled={createTransactionMutation.isLoading}
-            sx={{ mb: 0.5, fontWeight: 600 }}
+            sx={{ mb: 0.5, fontWeight: 600, transition: 'box-shadow 0.23s, transform 0.12s', '&:hover': { boxShadow: 4, transform: 'scale(1.03)' } }}
           >
             {t('add_transaction')}
           </Button>
