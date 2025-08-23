@@ -29,11 +29,13 @@ ChartJS.register(
 );
 const apiBase = process.env.REACT_APP_API_URL;
 
+
 const Analytics = ({ currency }) => {
   const { data: transactions, isLoading } = useQuery(
-    'transactions',
-    () => axios.get('${apiBase}/api/transactions').then(res => res.data)
-  );
+  'transactions',
+  () => axios.get(`${apiBase}/api/transactions`).then(res => res.data)
+);
+
 
   const getCategoryData = (transactions) => {
     if (!transactions) return { labels: [], datasets: [] };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 const apiBase = process.env.REACT_APP_API_URL;
 
+
 const Dashboard = ({ user, token }) => {
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
@@ -14,11 +15,12 @@ const Dashboard = ({ user, token }) => {
     const fetchTransactions = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000${apiBase}/api/transactions', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await fetch(`${apiBase}/api/transactions`, {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
 
         if (response.ok) {
           const data = await response.json();
@@ -66,20 +68,21 @@ const Dashboard = ({ user, token }) => {
     const category = prompt('Enter category:') || (type === 'income' ? 'Other Income' : 'Other Expense');
 
     try {
-      const response = await fetch('http://localhost:5000${apiBase}/api/transactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          type,
-          amount: parseFloat(amount),
-          category,
-          description,
-          account: 'Cash'
-        }),
-      });
+      const response = await fetch(`${apiBase}/api/transactions`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    type,
+    amount: parseFloat(amount),
+    category,
+    description,
+    account: 'Cash'
+  }),
+});
+
 
       const result = await response.json();
       

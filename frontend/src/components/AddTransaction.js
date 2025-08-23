@@ -36,22 +36,23 @@ const TransactionForm = ({ currency, token }) => {
   const transactionType = watch('type');
 
   const createTransactionMutation = useMutation(
-    (data) => axios.post('${apiBase}/api/transactions', data, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('transactions');
-        toast.success('✅ Transaction added successfully!');
-        reset();
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || '❌ Failed to add transaction');
-      }
+  (data) => axios.post(`${apiBase}/api/transactions`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
-  );
+  }),
+  {
+    onSuccess: () => {
+      queryClient.invalidateQueries('transactions');
+      toast.success('✅ Transaction added successfully!');
+      reset();
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || '❌ Failed to add transaction');
+    }
+  }
+);
+
 
   const onSubmit = (data) => {
     createTransactionMutation.mutate(data);
