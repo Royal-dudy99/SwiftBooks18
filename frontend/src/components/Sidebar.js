@@ -10,6 +10,8 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import Divider from '@mui/material/Divider';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SettingsIcon from '@mui/icons-material/Settings';
+
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -19,6 +21,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/dashboard', icon: <HomeIcon />, label: t('dashboard') },
     { path: '/add-transaction', icon: <AddCircleOutlineIcon />, label: t('add_transaction') },
     { path: '/analytics', icon: <BarChartIcon />, label: t('analytics') },
+    { path: '/settings', icon: <SettingsIcon />, label: t('settings') },
   ];
 
   return (

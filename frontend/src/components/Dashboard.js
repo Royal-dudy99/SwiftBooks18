@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import EditTransactionDialog from './EditTransactionDialog'; // <-- Make sure path matches your project
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -14,6 +15,9 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalanceWallet';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import Skeleton from '@mui/material/Skeleton';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const apiBase = process.env.REACT_APP_API_URL;
 
@@ -26,6 +30,9 @@ const Dashboard = ({ user, token, currency }) => {
     balance: 0
   });
   const [loading, setLoading] = useState(false);
+  // For editing
+  const [editTx, setEditTx] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -99,6 +106,63 @@ const Dashboard = ({ user, token, currency }) => {
     } catch (error) {
       console.error(t('network_error'));
       alert('❌ ' + t('network_error'));
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if(window.confirm(t('delete_transaction_confirm') || "Delete this transaction?")) {
+      try {
+        const response = await fetch(`${apiBase}/api/transactions/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const result = await response.json();
+        if (result.success) {
+          const updatedTransactions = transactions.filter((t) => t.id !== id);
+          setTransactions(updatedTransactions);
+          calculateStats(updatedTransactions);
+        } else {
+          alert(result.error || 'Error deleting transaction.');
+        }
+      } catch (err) {
+        alert('Network error deleting transaction.');
+      }
+    }
+  };
+
+  // -- Edit logic!
+  const handleEdit = (transaction) => {
+    setEditTx(transaction);
+    setEditOpen(true);
+  };
+
+  // Update transaction on backend and UI
+  const handleUpdateTransaction = async (updatedTx) => {
+    try {
+      const response = await fetch(`${apiBase}/api/transactions/${updatedTx.id}`, {
+        method: 'PUT', // or PATCH as per your backend
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updatedTx),
+      });
+      const result = await response.json();
+      if (result.success) {
+        const updatedTransactions = transactions.map(tx =>
+          tx.id === updatedTx.id ? { ...tx, ...updatedTx } : tx
+        );
+        setTransactions(updatedTransactions);
+        calculateStats(updatedTransactions);
+        setEditOpen(false);
+        setEditTx(null);
+      } else {
+        alert(result.error || 'Error updating transaction.');
+      }
+    } catch (err) {
+      alert('Network error updating transaction.');
     }
   };
 
@@ -292,11 +356,26 @@ const Dashboard = ({ user, token, currency }) => {
                 <Typography fontWeight={700} fontSize={18} color={transaction.type === "income" ? "success.main" : "error.main"}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </Typography>
+                {/* Edit and Delete action buttons */}
+                <IconButton aria-label="edit" color="primary" onClick={() => handleEdit(transaction)} sx={{ ml: 2 }}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton aria-label="delete" color="error" onClick={() => handleDelete(transaction.id)}>
+                  <DeleteIcon />
+                </IconButton>
               </Card>
             </Grid>
           ))}
         </Grid>
       )}
+
+      {/* Edit Modal */}
+      <EditTransactionDialog
+        open={editOpen}
+        onClose={() => { setEditOpen(false); setEditTx(null); }}
+        onSave={handleUpdateTransaction}
+        transaction={editTx}
+      />
     </Box>
   );
 };
