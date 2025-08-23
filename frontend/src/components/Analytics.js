@@ -1,146 +1,286 @@
+import React, { useState, useEffect } from 'react';
 
-import React from 'react';
-import { useQuery } from 'react-query';
-import axios from 'axios';
-import { Pie, Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 const apiBase = process.env.REACT_APP_API_URL;
 
+// Helper to convert array of objects to CSV string
+function arrayToCsv(items) {
+  if (!items.length) return '';
+  const header = Object.keys(items[0]).join(',');
+  const rows = items.map(row =>
+    Object.values(row)
+      .map(val => `"${typeof val === 'string' ? val.replace(/"/g, '""') : val}"`)
+      .join(',')
+  );
+  return [header, ...rows].join('\r\n');
+}
 
-const Analytics = ({ currency }) => {
-  const { data: transactions, isLoading } = useQuery(
-  'transactions',
-  () => axios.get(`${apiBase}/api/transactions`).then(res => res.data)
-);
+function downloadCsv(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
 
+const Dashboard = ({ user, token }) => {
+  const [transactions, setTransactions] = useState([]);
+  const [stats, setStats] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    balance: 0
+  });
+  const [loading, setLoading] = useState(false);
 
-  const getCategoryData = (transactions) => {
-    if (!transactions) return { labels: [], datasets: [] };
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${apiBase}/api/transactions`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setTransactions(data);
+          calculateStats(data);
+        } else {
+          console.error('Failed to fetch transactions');
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (token) fetchTransactions();
+  }, [token]);
 
-    const totals = {};
-    transactions
+  const calculateStats = (transactions) => {
+    const income = transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const expenses = transactions
       .filter(t => t.type === 'expense')
-      .forEach(t => {
-        totals[t.category] = (totals[t.category] || 0) + t.amount;
-      });
-
-    return {
-      labels: Object.keys(totals),
-      datasets: [
-        {
-          data: Object.values(totals),
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40'
-          ]
-        }
-      ]
-    };
-  };
-
-  const getMonthlyData = (transactions) => {
-    if (!transactions) return { labels: [], datasets: [] };
-
-    const months = {};
-    transactions.forEach(t => {
-      const m = new Date(t.date).toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric'
-      });
-      if (!months[m]) months[m] = { income: 0, expense: 0 };
-      months[m][t.type === 'income' ? 'income' : 'expense'] += t.amount;
+      .reduce((sum, t) => sum + t.amount, 0);
+    setStats({
+      totalIncome: income,
+      totalExpenses: expenses,
+      balance: income - expenses
     });
-
-    const labels = Object.keys(months).sort((a, b) => new Date(a) - new Date(b));
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Income',
-          data: labels.map(l => months[l].income),
-          backgroundColor: '#4BC0C0'
-        },
-        {
-          label: 'Expense',
-          data: labels.map(l => months[l].expense),
-          backgroundColor: '#FF6384'
-        }
-      ]
-    };
   };
 
-  if (isLoading) {
+  const addQuickTransaction = async (type) => {
+    const amount = prompt(`Enter ${type} amount:`);
+    if (!amount || isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    const description = prompt('Enter description:') || `Quick ${type}`;
+    const category = prompt('Enter category:') || (type === 'income' ? 'Other Income' : 'Other Expense');
+    try {
+      const response = await fetch(`${apiBase}/api/transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          type,
+          amount: parseFloat(amount),
+          category,
+          description,
+          account: 'Cash'
+        }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        const newTransactions = [...transactions, result.transaction];
+        setTransactions(newTransactions);
+        calculateStats(newTransactions);
+        alert('✅ Transaction added successfully!');
+      } else {
+        alert('❌ Failed to add transaction: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('❌ Network error. Please check your connection.');
+    }
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Food': '🍕',
+      'Transport': '🚗',
+      'Shopping': '🛒',
+      'Entertainment': '🎬',
+      'Health': '🏥',
+      'Education': '📚',
+      'Bills': '💡',
+      'Salary': '💰',
+      'Business': '💼',
+      'Investment': '📈',
+      'Other Income': '💵',
+      'Other Expense': '💸',
+      'Other': '📝'
+    };
+    return icons[category] || '📝';
+  };
+
+  const formatCurrency = (amount) => {
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: '2-digit'
+    });
+  };
+
+  // Export to CSV logic
+  const handleExportCsv = () => {
+    if (!transactions.length) {
+      alert('No transactions to export!');
+      return;
+    }
+    // Remove userId and sensitive fields if desired:
+    const toExport = transactions.map(({ id, userId, ...rest }) => ({
+      ...rest,
+      date: formatDate(rest.date),
+    }));
+    const csv = arrayToCsv(toExport);
+    downloadCsv(csv, 'swiftbooks_transactions.csv');
+  };
+
+  if (loading) {
     return (
       <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading analytics...</p>
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading your data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="analytics-container">
-      <h1>📊 Analytics</h1>
-      <div className="analytics-grid">
-        <div className="analytics-card">
-          <h3>Expenses by Category</h3>
-          <div style={{ height: '300px' }}>
-            <Pie
-              data={getCategoryData(transactions)}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
-              }}
-            />
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h1>💰 Dashboard</h1>
+        <p>Hello {user.name}, here's your financial overview</p>
+        <button className="cta-btn" onClick={handleExportCsv} style={{ float:"right", marginTop: "-45px" }}>
+          Export as CSV
+        </button>
+      </div>
+      {/* Stats Cards */}
+      <div className="dashboard-stats">
+        <div className="stat-card income-card">
+          <div className="stat-icon income-icon">📈</div>
+          <div className="stat-info">
+            <h3>Total Income</h3>
+            <div className="amount income">{formatCurrency(stats.totalIncome)}</div>
+            <p className="stat-subtitle">This month</p>
           </div>
         </div>
-
-        <div className="analytics-card">
-          <h3>Monthly Income vs Expense</h3>
-          <div style={{ height: '300px' }}>
-            <Bar
-              data={getMonthlyData(transactions)}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: { y: { beginAtZero: true } }
-              }}
-            />
+        <div className="stat-card expense-card">
+          <div className="stat-icon expense-icon">📉</div>
+          <div className="stat-info">
+            <h3>Total Expenses</h3>
+            <div className="amount expense">{formatCurrency(stats.totalExpenses)}</div>
+            <p className="stat-subtitle">This month</p>
           </div>
         </div>
+        <div className="stat-card balance-card">
+          <div className="stat-icon balance-icon">💳</div>
+          <div className="stat-info">
+            <h3>Balance</h3>
+            <div className={`amount ${stats.balance >= 0 ? 'positive' : 'negative'}`}>
+              {formatCurrency(stats.balance)}
+            </div>
+            <p className="stat-subtitle">Available</p>
+          </div>
+        </div>
+      </div>
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <button 
+          className="action-btn income-btn"
+          onClick={() => addQuickTransaction('income')}
+        >
+          <span className="btn-icon">💰</span>
+          <div className="btn-content">
+            <span className="btn-title">Add Income</span>
+            <span className="btn-subtitle">Record money received</span>
+          </div>
+        </button>
+        <button 
+          className="action-btn expense-btn"
+          onClick={() => addQuickTransaction('expense')}
+        >
+          <span className="btn-icon">💸</span>
+          <div className="btn-content">
+            <span className="btn-title">Add Expense</span>
+            <span className="btn-subtitle">Record money spent</span>
+          </div>
+        </button>
+        <button className="action-btn transfer-btn">
+          <span className="btn-icon">🔄</span>
+          <div className="btn-content">
+            <span className="btn-title">Transfer</span>
+            <span className="btn-subtitle">Between accounts</span>
+          </div>
+        </button>
+      </div>
+      {/* Recent Transactions */}
+      <div className="recent-transactions">
+        <div className="section-header">
+          <h2>Recent Transactions</h2>
+          <div className="transaction-stats">
+            <span className="transaction-count">{transactions.length} total</span>
+          </div>
+        </div>
+        {transactions.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📊</div>
+            <h3>No transactions yet</h3>
+            <p>Start by adding your first income or expense!</p>
+            <button 
+              className="cta-btn"
+              onClick={() => addQuickTransaction('expense')}
+            >
+              Add Your First Transaction
+            </button>
+          </div>
+        ) : (
+          <div className="transaction-list">
+            {transactions.slice(-10).reverse().map((transaction) => (
+              <div key={transaction.id} className="transaction-item">
+                <div className={`transaction-icon ${transaction.type}`}>
+                  {getCategoryIcon(transaction.category)}
+                </div>
+                <div className="transaction-details">
+                  <div className="transaction-description">
+                    {transaction.description || 'No description'}
+                  </div>
+                  <div className="transaction-meta">
+                    <span className="transaction-category">{transaction.category}</span>
+                    <span className="transaction-date">{formatDate(transaction.date)}</span>
+                    <span className="transaction-account">{transaction.account}</span>
+                  </div>
+                </div>
+                <div className={`transaction-amount ${transaction.type}`}>
+                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default Analytics;
+export default Dashboard;

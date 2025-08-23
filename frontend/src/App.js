@@ -4,37 +4,52 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import AddTransaction from './components/AddTransaction';
 import Analytics from './components/Analytics';
+import { ThemeProvider, useTheme } from './components/ThemeContext';
 import './App.css';
 
-// Add this line at the top!
 const apiBase = process.env.REACT_APP_API_URL;
 
-function App() {
+function AppContent() {
+  // ---- PASSWORD PROTECTION START ----
+  const [allowed, setAllowed] = useState(false);
+  const [asked, setAsked] = useState(false);
+
+  useEffect(() => {
+    if (!asked) {
+      const pass = prompt("Site not public yet. Enter password:");
+      if (pass === "BETA_TESTER_18") setAllowed(true); // <-- Set your secret password here
+      setAsked(true);
+    }
+  }, [asked]);
+
+  if (!allowed) {
+    return (
+      <div style={{textAlign:'center', marginTop:'20vh', fontSize:'2rem'}}>
+        🔒 Not allowed
+      </div>
+    );
+  }
+  // ---- PASSWORD PROTECTION END ----
+
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { theme, toggleTheme } = useTheme();
 
-  // Check if user is already logged in on app start
   useEffect(() => {
     const checkAuth = async () => {
       const savedToken = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
-
       if (savedToken && savedUser) {
         try {
-          // Use apiBase for backend requests!
           const response = await fetch(`${apiBase}/api/auth/profile`, {
-            headers: {
-              'Authorization': `Bearer ${savedToken}`
-            }
+            headers: { 'Authorization': `Bearer ${savedToken}` }
           });
-
           if (response.ok) {
             const data = await response.json();
             setUser(data.user);
             setToken(savedToken);
           } else {
-            // Token expired or invalid
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
@@ -46,7 +61,6 @@ function App() {
       }
       setLoading(false);
     };
-
     checkAuth();
   }, []);
 
@@ -62,7 +76,6 @@ function App() {
     setToken(null);
   };
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
       <div className="loading-container">
@@ -73,21 +86,15 @@ function App() {
       </div>
     );
   }
-
-  // If not logged in, show login page
   if (!user || !token) {
     return <Login onLogin={handleLogin} />;
   }
-
-  // If logged in, show main app
   return (
     <Router>
-      <div className="App">
+      <div className={`App ${theme}-theme`}>
         <header className="app-header">
           <div className="header-content">
-            <div className="logo">
-              💰 SwiftBooks
-            </div>
+            <div className="logo">💰 SwiftBooks</div>
             <nav className="nav-links">
               <a href="/" className="nav-link">Dashboard</a>
               <a href="/add-transaction" className="nav-link">Add Transaction</a>
@@ -95,13 +102,15 @@ function App() {
             </nav>
             <div className="user-info">
               <span>Welcome, {user.name}!</span>
+              <button onClick={toggleTheme} className="logout-btn" style={{marginRight:"10px"}}>
+                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+              </button>
               <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>
             </div>
           </div>
         </header>
-
         <main className="app-main">
           <Routes>
             <Route path="/" element={<Dashboard user={user} token={token} />} />
@@ -112,6 +121,14 @@ function App() {
         </main>
       </div>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

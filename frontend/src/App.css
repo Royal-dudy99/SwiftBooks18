@@ -831,3 +831,46 @@ background-clip: text;
     grid-template-columns: 1fr;
   }
 }
+.dark-theme {
+  background: linear-gradient(135deg, #191724 0%, #252634 100%) !important;
+  color: #e0e0e0;
+}
+
+.dark-theme .app-header,
+.dark-theme .auth-card,
+.dark-theme .dashboard-stats,
+.dark-theme .stat-card,
+.dark-theme .transaction-list,
+.dark-theme .recent-transactions {
+  background: rgba(30, 34, 44, 0.98) !important;
+  color: #e0e0e0;
+  box-shadow: 0 4px 32px rgba(20, 20, 30, 0.6);
+}
+
+.dark-theme .nav-link {
+  color: #bbb;
+}
+.dark-theme .nav-link:hover,
+.dark-theme .nav-link.active {
+  background: linear-gradient(45deg, #4e54c8, #8f94fb);
+  color: white;
+}
+.dark-theme .auth-header h1,
+.dark-theme .logo {
+  -webkit-text-fill-color: #60f9ea !important;
+}
+
+.dark-theme .stat-card,
+.dark-theme .transaction-list,
+.dark-theme .dashboard-header {
+  background: rgba(30, 34, 44, 0.96) !important;
+  color: #e0e0e0;
+}
+
+.dark-theme .auth-btn,
+.dark-theme .cta-btn,
+.dark-theme .logout-btn {
+  background: linear-gradient(45deg, #4e54c8, #8f94fb);
+  color: #fff;
+}
+

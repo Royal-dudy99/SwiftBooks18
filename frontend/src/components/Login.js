@@ -8,6 +8,7 @@ const Login = ({ onLogin }) => {
     email: '',
     password: ''
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,10 +20,22 @@ const Login = ({ onLogin }) => {
     setError('');
   };
 
+  const handleConfirmPasswordChange = (e) => {
+    setConfirmPassword(e.target.value);
+    setError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Validate passwords match if registering
+    if (isRegistering && formData.password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
 
     // Choose register vs. login endpoint
     const endpoint = isRegistering
@@ -101,6 +114,20 @@ const Login = ({ onLogin }) => {
             />
           </div>
 
+          {isRegistering && (
+            <div className="form-group">
+              <label>Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={confirmPassword}
+                onChange={handleConfirmPasswordChange}
+                placeholder="Confirm your password"
+                required
+              />
+            </div>
+          )}
+
           <button type="submit" className="auth-btn" disabled={loading}>
             {loading ? 'Please wait...' : (isRegistering ? 'Create Account' : 'Sign In')}
           </button>
@@ -111,7 +138,11 @@ const Login = ({ onLogin }) => {
             {isRegistering ? 'Already have an account?' : "Don't have an account?"}
             <button 
               type="button" 
-              onClick={() => setIsRegistering(!isRegistering)}
+              onClick={() => { 
+                setIsRegistering(!isRegistering);
+                setError('');
+                setConfirmPassword('');
+              }}
               className="switch-btn"
             >
               {isRegistering ? 'Sign In' : 'Create Account'}
