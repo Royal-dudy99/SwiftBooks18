@@ -19,8 +19,16 @@ const availableCurrencies = [
   { code: "EUR", symbol: "€", label: "EUR (€)" }
 ];
 
+const availableLanguages = [
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'हिन्दी' },
+  { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
+  { code: 'zh', label: '中文' }
+];
+
 const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { mode, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -30,9 +38,22 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
     }
   }, [setSelectedCurrency]);
 
+  // Restore language selection on load (if any)
+  useEffect(() => {
+    const savedLang = localStorage.getItem('app_lang');
+    if (savedLang && i18n.language !== savedLang) {
+      i18n.changeLanguage(savedLang);
+    }
+  }, [i18n]);
+
   const handleChange = (e) => {
     setSelectedCurrency(e.target.value);
     localStorage.setItem("currency", e.target.value);
+  };
+
+  const handleLanguageChange = (e) => {
+    i18n.changeLanguage(e.target.value);
+    localStorage.setItem('app_lang', e.target.value);
   };
 
   const userId = (() => {
@@ -51,16 +72,29 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
 
   return (
     <Box maxWidth={420} mx="auto" mt={4}>
-      <Paper elevation={4}
-        sx={{
-          p: 3,
-          borderRadius: 4,
-          transition: 'box-shadow 0.33s, transform 0.14s',
-          '&:hover': { boxShadow: 8, transform: 'scale(1.014)' }
-        }}>
+      <Paper elevation={4} sx={{ p: 3, borderRadius: 4 }}>
         <Typography variant="h5" fontWeight={700} mb={2}>
           {t('settings')}
         </Typography>
+        {/* --- Language Selector --- */}
+        <Box mb={3}>
+          <FormControl fullWidth>
+            <InputLabel>{t('select_language')}</InputLabel>
+            <Select
+              value={i18n.language}
+              label={t('select_language')}
+              onChange={handleLanguageChange}
+            >
+              {availableLanguages.map(l => (
+                <MenuItem key={l.code} value={l.code}>{l.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Typography mt={1}>
+            {t('selected')}: <strong>{availableLanguages.find(l => l.code === i18n.language)?.label}</strong>
+          </Typography>
+        </Box>
+        {/* --- Currency Selector --- */}
         <Box mb={3}>
           <FormControl fullWidth>
             <InputLabel>{t('select_currency')}</InputLabel>
@@ -72,6 +106,7 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
           </FormControl>
           <Typography mt={1}>{t('selected')}: <strong>{selectedCurrency}</strong></Typography>
         </Box>
+        {/* --- Theme Selector --- */}
         <Box mb={3} display="flex" alignItems="center" gap={2}>
           <Typography fontWeight={500}>{t('theme')}</Typography>
           <Button
@@ -90,6 +125,7 @@ const Settings = ({ selectedCurrency, setSelectedCurrency }) => {
             <b>{mode.charAt(0).toUpperCase() + mode.slice(1)} {t('mode')}</b>
           </Typography>
         </Box>
+        {/* --- Referral Link --- */}
         <Box>
           <Typography fontWeight={500}>{t('refer')}</Typography>
           <Typography variant="body2" color="text.secondary" mt={1}>{t('share_this_link')}</Typography>

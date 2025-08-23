@@ -1,4 +1,5 @@
 {
+  "select_language": "Select Language",
   "settings": "Settings",
   "select_currency": "Select Currency:",
   "selected": "Selected",
@@ -62,5 +63,4 @@
 "share_this_link": "Share this link with friends:",
 "your_referral_link": "Your Referral Link",
 "tagline": "Track fast. Grow faster."
-
 }

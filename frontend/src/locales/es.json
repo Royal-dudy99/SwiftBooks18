@@ -1,4 +1,5 @@
 {
+  "select_language": "Seleccionar idioma",
   "settings": "Configuración",
   "select_currency": "Seleccionar moneda:",
   "selected": "Seleccionado",
@@ -62,5 +63,4 @@
 "share_this_link": "Comparte este enlace con amigos:",
 "your_referral_link": "Tu enlace de referencia",
 "tagline": "Rastrea rápido. Crece más rápido."
-
 }

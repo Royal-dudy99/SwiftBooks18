@@ -1,4 +1,5 @@
 {
+  "select_language": "भाषा चुनें",
   "settings": "सेटिंग्स",
   "select_currency": "मुद्रा चुनें:",
   "selected": "चयनित",
@@ -62,5 +63,4 @@
 "share_this_link": "इस लिंक को दोस्तों के साथ साझा करें:",
 "your_referral_link": "आपका रेफरल लिंक",
 "tagline": "तेज़ ट्रैक करें। और तेज़ बढ़ें।"
-
 }
