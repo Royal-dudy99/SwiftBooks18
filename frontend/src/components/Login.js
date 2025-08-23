@@ -18,39 +18,39 @@ const Login = ({ onLogin }) => {
     });
     setError('');
   };
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
 
-  // Choose register vs. login endpoint
-  const endpoint = isRegistering
-  ? `${apiBase}/api/auth/register`
-  : `${apiBase}/api/auth/login`;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-const response = await fetch(endpoint, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData),
-});
+    // Choose register vs. login endpoint
+    const endpoint = isRegistering
+      ? `${apiBase}/api/auth/register`
+      : `${apiBase}/api/auth/login`;
 
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.success) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      onLogin(data.user, data.token);
-    } else {
-      setError(data.error);
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onLogin(data.user, data.token);
+      } else {
+        setError(data.error);
+      }
+    } catch (err) {
+      setError(err.message || 'Network error. please try again');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError(err.message || 'Network error. please try again');
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="auth-container">
