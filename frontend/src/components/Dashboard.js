@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 const apiBase = process.env.REACT_APP_API_URL;
 
-
-const Dashboard = ({ user, token }) => {
+const Dashboard = ({ user, token, currency }) => {
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -16,12 +15,8 @@ const Dashboard = ({ user, token }) => {
       setLoading(true);
       try {
         const response = await fetch(`${apiBase}/api/transactions`, {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-});
-
-
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (response.ok) {
           const data = await response.json();
           setTransactions(data);
@@ -35,21 +30,16 @@ const Dashboard = ({ user, token }) => {
         setLoading(false);
       }
     };
-
-    if (token) {
-      fetchTransactions();
-    }
+    if (token) fetchTransactions();
   }, [token]);
 
   const calculateStats = (transactions) => {
     const income = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
-    
     const expenses = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
-    
     setStats({
       totalIncome: income,
       totalExpenses: expenses,
@@ -63,31 +53,25 @@ const Dashboard = ({ user, token }) => {
       alert('Please enter a valid amount');
       return;
     }
-
     const description = prompt('Enter description:') || `Quick ${type}`;
     const category = prompt('Enter category:') || (type === 'income' ? 'Other Income' : 'Other Expense');
-
     try {
       const response = await fetch(`${apiBase}/api/transactions`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    type,
-    amount: parseFloat(amount),
-    category,
-    description,
-    account: 'Cash'
-  }),
-});
-
-
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          type,
+          amount: parseFloat(amount),
+          category,
+          description,
+          account: 'Cash'
+        }),
+      });
       const result = await response.json();
-      
       if (result.success) {
-        // Add new transaction to state immediately
         const newTransactions = [...transactions, result.transaction];
         setTransactions(newTransactions);
         calculateStats(newTransactions);
@@ -120,7 +104,10 @@ const Dashboard = ({ user, token }) => {
     return icons[category] || '📝';
   };
 
+  // -- Changed function below --
   const formatCurrency = (amount) => {
+    if (currency === "USD") return `$${amount.toLocaleString('en-US')}`;
+    if (currency === "EUR") return `€${amount.toLocaleString('en-EU')}`;
     return `₹${amount.toLocaleString('en-IN')}`;
   };
 
@@ -150,7 +137,6 @@ const Dashboard = ({ user, token }) => {
         <h1>💰 Dashboard</h1>
         <p>Hello {user?.name}, here's your financial overview</p>
       </div>
-
       {/* Stats Cards */}
       <div className="dashboard-stats">
         <div className="stat-card income-card">
@@ -161,7 +147,6 @@ const Dashboard = ({ user, token }) => {
             <p className="stat-subtitle">This month</p>
           </div>
         </div>
-
         <div className="stat-card expense-card">
           <div className="stat-icon expense-icon">📉</div>
           <div className="stat-info">
@@ -170,7 +155,6 @@ const Dashboard = ({ user, token }) => {
             <p className="stat-subtitle">This month</p>
           </div>
         </div>
-
         <div className="stat-card balance-card">
           <div className="stat-icon balance-icon">💳</div>
           <div className="stat-info">
@@ -182,7 +166,6 @@ const Dashboard = ({ user, token }) => {
           </div>
         </div>
       </div>
-
       {/* Quick Actions */}
       <div className="quick-actions">
         <button 
@@ -195,7 +178,6 @@ const Dashboard = ({ user, token }) => {
             <span className="btn-subtitle">Record money received</span>
           </div>
         </button>
-        
         <button 
           className="action-btn expense-btn"
           onClick={() => addQuickTransaction('expense')}
@@ -206,7 +188,6 @@ const Dashboard = ({ user, token }) => {
             <span className="btn-subtitle">Record money spent</span>
           </div>
         </button>
-        
         <button className="action-btn transfer-btn">
           <span className="btn-icon">🔄</span>
           <div className="btn-content">
@@ -215,7 +196,6 @@ const Dashboard = ({ user, token }) => {
           </div>
         </button>
       </div>
-
       {/* Recent Transactions */}
       <div className="recent-transactions">
         <div className="section-header">
@@ -224,7 +204,6 @@ const Dashboard = ({ user, token }) => {
             <span className="transaction-count">{transactions.length} total</span>
           </div>
         </div>
-
         {transactions.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📊</div>

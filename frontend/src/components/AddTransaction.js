@@ -1,4 +1,3 @@
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import React, { useState } from 'react';
@@ -36,26 +35,23 @@ const TransactionForm = ({ currency, token }) => {
   const transactionType = watch('type');
 
   const createTransactionMutation = useMutation(
-  (data) => axios.post(`${apiBase}/api/transactions`, data, {
-    headers: {
-      Authorization: `Bearer ${token}`
+    (data) => axios.post(`${apiBase}/api/transactions`, { ...data, currency }, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('transactions');
+        toast.success('✅ Transaction added successfully!');
+        reset({ type: 'expense', currency: currency, date: new Date().toISOString().split('T')[0] });
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || '❌ Failed to add transaction');
+      }
     }
-  }),
-  {
-    onSuccess: () => {
-      queryClient.invalidateQueries('transactions');
-      toast.success('✅ Transaction added successfully!');
-      reset();
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || '❌ Failed to add transaction');
-    }
-  }
-);
-
+  );
 
   const onSubmit = (data) => {
-    createTransactionMutation.mutate(data);
+    createTransactionMutation.mutate({ ...data, currency });
   };
 
   return (
@@ -76,7 +72,7 @@ const TransactionForm = ({ currency, token }) => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Amount</label>
+              <label className="form-label">Amount ({currency})</label>
               <input
                 type="number"
                 step="0.01"
@@ -121,7 +117,7 @@ const TransactionForm = ({ currency, token }) => {
 
           <div className="form-group">
             <label className="form-label">Currency</label>
-            <select {...register('currency')} className="form-input">
+            <select className="form-input" value={currency} disabled>
               <option value="INR">INR (₹)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>

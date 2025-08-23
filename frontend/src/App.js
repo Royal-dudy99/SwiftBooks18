@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import AddTransaction from './components/AddTransaction';
 import Analytics from './components/Analytics';
+import Settings from './components/Settings'; // <-- make sure you create this!
 import { ThemeProvider, useTheme } from './components/ThemeContext';
 import './App.css';
 
@@ -16,18 +17,19 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    localStorage.getItem("currency") || "INR"
+  );
   const { theme, toggleTheme } = useTheme();
 
-  // Password prompt logic—effect always runs; actual check triggers gate
   useEffect(() => {
     if (!asked) {
       const pass = prompt("Site not public yet. Enter password:");
-      if (pass === "BETA_TESTER_18") setAllowed(true); // Your password here
+      if (pass === "BETA_TESTER_18") setAllowed(true);
       setAsked(true);
     }
   }, [asked]);
 
-  // Auth effect, only when allowed
   useEffect(() => {
     if (!allowed) return;
     const checkAuth = async () => {
@@ -55,9 +57,8 @@ function AppContent() {
       setLoading(false);
     };
     checkAuth();
-  }, [allowed]); // Only fire auth fetch once allowed is true
+  }, [allowed]);
 
-  // CONDITIONAL RETURNS come after ALL hooks
   if (!allowed && asked) {
     return (
       <div style={{textAlign:'center', marginTop:'20vh', fontSize:'2rem'}}>
@@ -101,10 +102,10 @@ function AppContent() {
               <a href="/" className="nav-link">Dashboard</a>
               <a href="/add-transaction" className="nav-link">Add Transaction</a>
               <a href="/analytics" className="nav-link">Analytics</a>
+              <a href="/settings" className="nav-link">Settings</a>
             </nav>
             <div className="user-info">
               <span>Welcome, {user?.name || "User"}!</span>
-
               <button onClick={toggleTheme} className="logout-btn" style={{marginRight:"10px"}}>
                 {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
               </button>
@@ -116,9 +117,10 @@ function AppContent() {
         </header>
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Dashboard user={user} token={token} />} />
-            <Route path="/add-transaction" element={<AddTransaction user={user} token={token} />} />
-            <Route path="/analytics" element={<Analytics user={user} token={token} />} />
+            <Route path="/" element={<Dashboard user={user} token={token} currency={selectedCurrency} />} />
+            <Route path="/add-transaction" element={<AddTransaction user={user} token={token} currency={selectedCurrency} />} />
+            <Route path="/analytics" element={<Analytics user={user} token={token} currency={selectedCurrency} />} />
+            <Route path="/settings" element={<Settings selectedCurrency={selectedCurrency} setSelectedCurrency={setSelectedCurrency} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
