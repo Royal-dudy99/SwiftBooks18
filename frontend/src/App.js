@@ -10,7 +10,7 @@ import './App.css';
 const apiBase = process.env.REACT_APP_API_URL;
 
 function AppContent() {
-  // All hooks MUST come first!
+  // All hooks MUST come first and always run:
   const [allowed, setAllowed] = useState(false);
   const [asked, setAsked] = useState(false);
   const [user, setUser] = useState(null);
@@ -18,25 +18,18 @@ function AppContent() {
   const [loading, setLoading] = useState(true);
   const { theme, toggleTheme } = useTheme();
 
-  // Password prompt logic (RUNS after all hooks)
+  // Password prompt logic—effect always runs; actual check triggers gate
   useEffect(() => {
     if (!asked) {
       const pass = prompt("Site not public yet. Enter password:");
-      if (pass === "BETA_TESTER_18") setAllowed(true); // <-- Your password here
+      if (pass === "BETA_TESTER_18") setAllowed(true); // Your password here
       setAsked(true);
     }
   }, [asked]);
 
-  // Conditional render FOR password protection
-  if (!allowed) {
-    return (
-      <div style={{textAlign:'center', marginTop:'20vh', fontSize:'2rem'}}>
-        🔒 Not allowed
-      </div>
-    );
-  }
-
+  // Auth effect, only when allowed
   useEffect(() => {
+    if (!allowed) return;
     const checkAuth = async () => {
       const savedToken = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
@@ -62,21 +55,17 @@ function AppContent() {
       setLoading(false);
     };
     checkAuth();
-  }, []);
+  }, [allowed]); // Only fire auth fetch once allowed is true
 
-  const handleLogin = (userData, userToken) => {
-    setUser(userData);
-    setToken(userToken);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setToken(null);
-  };
-
-  if (loading) {
+  // CONDITIONAL RETURNS come after ALL hooks
+  if (!allowed && asked) {
+    return (
+      <div style={{textAlign:'center', marginTop:'20vh', fontSize:'2rem'}}>
+        🔒 Not allowed
+      </div>
+    );
+  }
+  if (loading && allowed) {
     return (
       <div className="loading-container">
         <div className="loading-spinner">
@@ -86,9 +75,22 @@ function AppContent() {
       </div>
     );
   }
-  if (!user || !token) {
+  if ((!user || !token) && allowed && !loading) {
     return <Login onLogin={handleLogin} />;
   }
+
+  function handleLogin(userData, userToken) {
+    setUser(userData);
+    setToken(userToken);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setToken(null);
+  }
+
   return (
     <Router>
       <div className={`App ${theme}-theme`}>
@@ -101,7 +103,7 @@ function AppContent() {
               <a href="/analytics" className="nav-link">Analytics</a>
             </nav>
             <div className="user-info">
-              <span>Welcome, {user.name}!</span>
+              <span>Welcome, {user && user.name}!</span>
               <button onClick={toggleTheme} className="logout-btn" style={{marginRight:"10px"}}>
                 {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
               </button>
