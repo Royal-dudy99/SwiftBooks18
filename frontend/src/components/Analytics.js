@@ -1,4 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import Chip from '@mui/material/Chip';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalanceWallet';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const apiBase = process.env.REACT_APP_API_URL;
 
@@ -25,6 +38,7 @@ function downloadCsv(csv, filename) {
 }
 
 const Analytics = ({ user, token, currency }) => {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -45,16 +59,16 @@ const Analytics = ({ user, token, currency }) => {
           setTransactions(data);
           calculateStats(data);
         } else {
-          console.error('Failed to fetch transactions');
+          console.error(t('failed_fetch'));
         }
       } catch (error) {
-        console.error('Error fetching transactions:', error);
+        console.error(t('network_error'));
       } finally {
         setLoading(false);
       }
     };
     if (token) fetchTransactions();
-  }, [token]);
+  }, [token, t]);
 
   const calculateStats = (transactions) => {
     const income = transactions
@@ -70,7 +84,6 @@ const Analytics = ({ user, token, currency }) => {
     });
   };
 
-  // Dynamic currency formatting
   const formatCurrency = (amount) => {
     if (currency === "USD") return `$${amount.toLocaleString('en-US')}`;
     if (currency === "EUR") return `€${amount.toLocaleString('en-EU')}`;
@@ -86,10 +99,9 @@ const Analytics = ({ user, token, currency }) => {
     });
   };
 
-  // Export to CSV logic
   const handleExportCsv = () => {
     if (!transactions.length) {
-      alert('No transactions to export!');
+      alert(t('no_transactions'));
       return;
     }
     const toExport = transactions.map(({ id, userId, ...rest }) => ({
@@ -102,57 +114,71 @@ const Analytics = ({ user, token, currency }) => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Loading your data...</p>
-        </div>
-      </div>
+      <Box sx={{ py: 6, textAlign: 'center' }}>
+        <CircularProgress sx={{ mb: 2 }} />
+        <Typography variant="body1">{t('loading_data')}</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>📊 Analytics</h1>
-        <p>Hello {user?.name}, here's your financial overview</p>
-        <button className="cta-btn" onClick={handleExportCsv} style={{ float:"right", marginTop: "-45px" }}>
-          Export as CSV
-        </button>
-      </div>
+    <Box sx={{ maxWidth: 900, m: '0 auto', p: { xs: 1, md: 3 } }}>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <div style={{ flexGrow: 1 }}>
+          <Typography variant="h4" fontWeight={700} gutterBottom>
+            📊 {t('analytics')}
+          </Typography>
+          <Typography variant="subtitle1">
+            {t('welcome_user', { name: user?.name })}
+          </Typography>
+        </div>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<CloudDownloadIcon />}
+          onClick={handleExportCsv}
+        >
+          {t('export_csv')}
+        </Button>
+      </Box>
+
       {/* Stats Cards */}
-      <div className="dashboard-stats">
-        <div className="stat-card income-card">
-          <div className="stat-icon income-icon">📈</div>
-          <div className="stat-info">
-            <h3>Total Income</h3>
-            <div className="amount income">{formatCurrency(stats.totalIncome)}</div>
-            <p className="stat-subtitle">This month</p>
-          </div>
-        </div>
-        <div className="stat-card expense-card">
-          <div className="stat-icon expense-icon">📉</div>
-          <div className="stat-info">
-            <h3>Total Expenses</h3>
-            <div className="amount expense">{formatCurrency(stats.totalExpenses)}</div>
-            <p className="stat-subtitle">This month</p>
-          </div>
-        </div>
-        <div className="stat-card balance-card">
-          <div className="stat-icon balance-icon">💳</div>
-          <div className="stat-info">
-            <h3>Balance</h3>
-            <div className={`amount ${stats.balance >= 0 ? 'positive' : 'negative'}`}>
-              {formatCurrency(stats.balance)}
-            </div>
-            <p className="stat-subtitle">Available</p>
-          </div>
-        </div>
-      </div>
-      {/* You can add chart components below, passing currency if needed */}
-      {/* <YourPieChart data={} currency={currency} /> */}
-      {/* <YourBarChart data={} currency={currency} /> */}
-    </div>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: '6px solid #3bb77e' }}>
+            <CardContent>
+              <Chip icon={<TrendingUpIcon />} color="success" label={t('total_income')} />
+              <Typography mt={1} variant="h5" color="success.main" fontWeight={800}>
+                {formatCurrency(stats.totalIncome)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('this_month')}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: '6px solid #d32f2f' }}>
+            <CardContent>
+              <Chip icon={<TrendingDownIcon />} color="error" label={t('total_expenses')} />
+              <Typography mt={1} variant="h5" color="error.main" fontWeight={800}>
+                {formatCurrency(stats.totalExpenses)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('this_month')}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: '6px solid #497ce2' }}>
+            <CardContent>
+              <Chip icon={<AccountBalanceIcon />} color="primary" label={t('balance')} />
+              <Typography mt={1} variant="h5" color={stats.balance >= 0 ? "success.main" : "error.main"} fontWeight={800}>
+                {formatCurrency(stats.balance)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('available')}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

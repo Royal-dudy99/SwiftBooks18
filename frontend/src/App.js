@@ -1,14 +1,33 @@
 import React, { useState, useEffect } from 'react';
+import './i18n';
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import AddTransaction from './components/AddTransaction';
 import Analytics from './components/Analytics';
-import Settings from './components/Settings'; // <-- make sure you create this!
-import { ThemeProvider, useTheme } from './components/ThemeContext';
+import Settings from './components/Settings';
+import { ThemeProvider as CustomThemeProvider, useTheme } from './components/ThemeContext';
 import './App.css';
 
+// Material UI ThemeProvider
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
 const apiBase = process.env.REACT_APP_API_URL;
+
+const muiTheme = createTheme({
+  palette: {
+    primary: { main: '#497ce2' },
+    secondary: { main: '#3bb77e' },
+    background: { default: '#f4f6fb' }
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  typography: {
+    fontFamily: '"Noto Serif", "Segoe UI", Arial, serif',
+  }
+});
 
 function AppContent() {
   // All hooks MUST come first and always run:
@@ -106,9 +125,6 @@ function AppContent() {
             </nav>
             <div className="user-info">
               <span>Welcome, {user?.name || "User"}!</span>
-              <button onClick={toggleTheme} className="logout-btn" style={{marginRight:"10px"}}>
-                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-              </button>
               <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>
@@ -120,7 +136,14 @@ function AppContent() {
             <Route path="/" element={<Dashboard user={user} token={token} currency={selectedCurrency} />} />
             <Route path="/add-transaction" element={<AddTransaction user={user} token={token} currency={selectedCurrency} />} />
             <Route path="/analytics" element={<Analytics user={user} token={token} currency={selectedCurrency} />} />
-            <Route path="/settings" element={<Settings selectedCurrency={selectedCurrency} setSelectedCurrency={setSelectedCurrency} />} />
+            <Route path="/settings" element={
+              <Settings
+                selectedCurrency={selectedCurrency}
+                setSelectedCurrency={setSelectedCurrency}
+                theme={theme}
+                toggleTheme={toggleTheme}
+              />
+            } />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
@@ -131,8 +154,10 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
+    <ThemeProvider theme={muiTheme}>
+      <CustomThemeProvider>
+        <AppContent />
+      </CustomThemeProvider>
     </ThemeProvider>
   );
 }

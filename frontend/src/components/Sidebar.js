@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const menuItems = [
-    { path: '/dashboard', icon: 'fa-home', label: 'Dashboard' },
-    { path: '/add-transaction', icon: 'fa-plus', label: 'Add Transaction' },
-    { path: '/analytics', icon: 'fa-chart-bar', label: 'Analytics' },
+    { path: '/dashboard', icon: 'fa-home', label: t('dashboard') },
+    { path: '/add-transaction', icon: 'fa-plus', label: t('add_transaction') },
+    { path: '/analytics', icon: 'fa-chart-bar', label: t('analytics') },
   ];
 
   return (
@@ -33,5 +35,3 @@ const Sidebar = ({ isOpen, onClose }) => {
 };
 
 export default Sidebar;
-
- 

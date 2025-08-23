@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
+import AddIcon from '@mui/icons-material/Add';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalanceWallet';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import CircularProgress from '@mui/material/CircularProgress';
+
 const apiBase = process.env.REACT_APP_API_URL;
 
 const Dashboard = ({ user, token, currency }) => {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalIncome: 0,
@@ -22,16 +39,16 @@ const Dashboard = ({ user, token, currency }) => {
           setTransactions(data);
           calculateStats(data);
         } else {
-          console.error('Failed to fetch transactions');
+          console.error(t('failed_fetch'));
         }
       } catch (error) {
-        console.error('Error fetching transactions:', error);
+        console.error(t('network_error'));
       } finally {
         setLoading(false);
       }
     };
     if (token) fetchTransactions();
-  }, [token]);
+  }, [token, t]);
 
   const calculateStats = (transactions) => {
     const income = transactions
@@ -48,13 +65,13 @@ const Dashboard = ({ user, token, currency }) => {
   };
 
   const addQuickTransaction = async (type) => {
-    const amount = prompt(`Enter ${type} amount:`);
+    const amount = prompt(`${t('amount')}:`);
     if (!amount || isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid amount');
+      alert(t('error') + ': ' + t('amount'));
       return;
     }
-    const description = prompt('Enter description:') || `Quick ${type}`;
-    const category = prompt('Enter category:') || (type === 'income' ? 'Other Income' : 'Other Expense');
+    const description = prompt(t('description')) || `${t('add_transaction')} ${type}`;
+    const category = prompt(t('category')) || (type === 'income' ? t('income') : t('expense'));
     try {
       const response = await fetch(`${apiBase}/api/transactions`, {
         method: 'POST',
@@ -75,13 +92,13 @@ const Dashboard = ({ user, token, currency }) => {
         const newTransactions = [...transactions, result.transaction];
         setTransactions(newTransactions);
         calculateStats(newTransactions);
-        alert('✅ Transaction added successfully!');
+        alert(t('transaction_added'));
       } else {
-        alert('❌ Failed to add transaction: ' + (result.error || 'Unknown error'));
+        alert(t('failed_add_transaction') + ': ' + (result.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('❌ Network error. Please check your connection.');
+      console.error(t('network_error'));
+      alert('❌ ' + t('network_error'));
     }
   };
 
@@ -104,7 +121,6 @@ const Dashboard = ({ user, token, currency }) => {
     return icons[category] || '📝';
   };
 
-  // -- Changed function below --
   const formatCurrency = (amount) => {
     if (currency === "USD") return `$${amount.toLocaleString('en-US')}`;
     if (currency === "EUR") return `€${amount.toLocaleString('en-EU')}`;
@@ -122,126 +138,131 @@ const Dashboard = ({ user, token, currency }) => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Loading your data...</p>
-        </div>
-      </div>
+      <Box sx={{ py: 6, textAlign: 'center' }}>
+        <CircularProgress sx={{ mb: 2 }} />
+        <Typography variant="body1">{t('loading_data')}</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>💰 Dashboard</h1>
-        <p>Hello {user?.name}, here's your financial overview</p>
-      </div>
+    <Box sx={{ maxWidth: 900, m: '0 auto', p: { xs: 1, md: 3 } }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          💰 {t('dashboard')}
+        </Typography>
+        <Typography variant="subtitle1">
+          {t('welcome_user', { name: user?.name })}
+        </Typography>
+      </Box> 
+
       {/* Stats Cards */}
-      <div className="dashboard-stats">
-        <div className="stat-card income-card">
-          <div className="stat-icon income-icon">📈</div>
-          <div className="stat-info">
-            <h3>Total Income</h3>
-            <div className="amount income">{formatCurrency(stats.totalIncome)}</div>
-            <p className="stat-subtitle">This month</p>
-          </div>
-        </div>
-        <div className="stat-card expense-card">
-          <div className="stat-icon expense-icon">📉</div>
-          <div className="stat-info">
-            <h3>Total Expenses</h3>
-            <div className="amount expense">{formatCurrency(stats.totalExpenses)}</div>
-            <p className="stat-subtitle">This month</p>
-          </div>
-        </div>
-        <div className="stat-card balance-card">
-          <div className="stat-icon balance-icon">💳</div>
-          <div className="stat-info">
-            <h3>Balance</h3>
-            <div className={`amount ${stats.balance >= 0 ? 'positive' : 'negative'}`}>
-              {formatCurrency(stats.balance)}
-            </div>
-            <p className="stat-subtitle">Available</p>
-          </div>
-        </div>
-      </div>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: '6px solid #3bb77e' }}>
+            <CardContent>
+              <Chip icon={<TrendingUpIcon />} color="success" label={t('total_income')} />
+              <Typography mt={1} variant="h5" color="success.main" fontWeight={800}>
+                {formatCurrency(stats.totalIncome)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('this_month')}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: '6px solid #d32f2f' }}>
+            <CardContent>
+              <Chip icon={<TrendingDownIcon />} color="error" label={t('total_expenses')} />
+              <Typography mt={1} variant="h5" color="error.main" fontWeight={800}>
+                {formatCurrency(stats.totalExpenses)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('this_month')}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ borderLeft: '6px solid #497ce2' }}>
+            <CardContent>
+              <Chip icon={<AccountBalanceIcon />} color="primary" label={t('balance')} />
+              <Typography mt={1} variant="h5" color={stats.balance >= 0 ? "success.main" : "error.main"} fontWeight={800}>
+                {formatCurrency(stats.balance)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">{t('available')}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
       {/* Quick Actions */}
-      <div className="quick-actions">
-        <button 
-          className="action-btn income-btn"
+      <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Button
+          variant="outlined"
+          color="success"
+          startIcon={<TrendingUpIcon />}
           onClick={() => addQuickTransaction('income')}
         >
-          <span className="btn-icon">💰</span>
-          <div className="btn-content">
-            <span className="btn-title">Add Income</span>
-            <span className="btn-subtitle">Record money received</span>
-          </div>
-        </button>
-        <button 
-          className="action-btn expense-btn"
+          {t('add_income')}
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<TrendingDownIcon />}
           onClick={() => addQuickTransaction('expense')}
         >
-          <span className="btn-icon">💸</span>
-          <div className="btn-content">
-            <span className="btn-title">Add Expense</span>
-            <span className="btn-subtitle">Record money spent</span>
-          </div>
-        </button>
-        <button className="action-btn transfer-btn">
-          <span className="btn-icon">🔄</span>
-          <div className="btn-content">
-            <span className="btn-title">Transfer</span>
-            <span className="btn-subtitle">Between accounts</span>
-          </div>
-        </button>
-      </div>
+          {t('add_expense')}
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<AutorenewIcon />}
+          onClick={() => alert(t('feature_coming_soon'))}
+        >
+          {t('transfer')}
+        </Button>
+      </Paper>
+
       {/* Recent Transactions */}
-      <div className="recent-transactions">
-        <div className="section-header">
-          <h2>Recent Transactions</h2>
-          <div className="transaction-stats">
-            <span className="transaction-count">{transactions.length} total</span>
-          </div>
-        </div>
-        {transactions.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📊</div>
-            <h3>No transactions yet</h3>
-            <p>Start by adding your first income or expense!</p>
-            <button 
-              className="cta-btn"
-              onClick={() => addQuickTransaction('expense')}
-            >
-              Add Your First Transaction
-            </button>
-          </div>
-        ) : (
-          <div className="transaction-list">
-            {transactions.slice(-10).reverse().map((transaction) => (
-              <div key={transaction.id} className="transaction-item">
-                <div className={`transaction-icon ${transaction.type}`}>
-                  {getCategoryIcon(transaction.category)}
-                </div>
-                <div className="transaction-details">
-                  <div className="transaction-description">
-                    {transaction.description || 'No description'}
-                  </div>
-                  <div className="transaction-meta">
-                    <span className="transaction-category">{transaction.category}</span>
-                    <span className="transaction-date">{formatDate(transaction.date)}</span>
-                    <span className="transaction-account">{transaction.account}</span>
-                  </div>
-                </div>
-                <div className={`transaction-amount ${transaction.type}`}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {t('recent_transactions')}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {transactions.length} {t('total')}
+        </Typography>
+      </Box>
+      {transactions.length === 0 ? (
+        <Paper sx={{ textAlign: 'center', py: 4, border: '1px dashed #497ce2', mb: 5 }}>
+          <Typography variant="h5" fontWeight={600} color="primary">
+            {t('no_transactions')}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>{t('start_adding')}</Typography>
+          <Button variant="contained" onClick={() => addQuickTransaction('expense')} startIcon={<AddIcon />}>
+            {t('add_first_transaction')}
+          </Button>
+        </Paper>
+      ) : (
+        <Grid container spacing={2}>
+          {transactions.slice(-10).reverse().map((transaction) => (
+            <Grid item xs={12} key={transaction.id}>
+              <Card sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ fontSize: 34 }}>{getCategoryIcon(transaction.category)}</Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography fontWeight={600}>
+                    {transaction.description || t('description')}
+                  </Typography>
+                  <Typography fontSize={14} color="text.secondary">
+                    {transaction.category} • {formatDate(transaction.date)} • {transaction.account}
+                  </Typography>
+                </Box>
+                <Typography fontWeight={700} fontSize={18} color={transaction.type === "income" ? "success.main" : "error.main"}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                </Typography>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Box>
   );
 };
 
