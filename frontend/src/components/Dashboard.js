@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+const apiBase = process.env.REACT_APP_API_URL;
 
 const Dashboard = ({ user, token }) => {
   const [transactions, setTransactions] = useState([]);
@@ -13,7 +14,7 @@ const Dashboard = ({ user, token }) => {
     const fetchTransactions = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/transactions', {
+        const response = await fetch('http://localhost:5000${apiBase}/api/transactions', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -65,7 +66,7 @@ const Dashboard = ({ user, token }) => {
     const category = prompt('Enter category:') || (type === 'income' ? 'Other Income' : 'Other Expense');
 
     try {
-      const response = await fetch('http://localhost:5000/api/transactions', {
+      const response = await fetch('http://localhost:5000${apiBase}/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

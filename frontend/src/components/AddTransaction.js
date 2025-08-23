@@ -1,3 +1,4 @@
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import React, { useState } from 'react';
@@ -6,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import axios from 'axios';
+const apiBase = process.env.REACT_APP_API_URL;
 
 const schema = yup.object({
   type: yup.string().required('Transaction type is required'),
@@ -34,7 +36,7 @@ const TransactionForm = ({ currency, token }) => {
   const transactionType = watch('type');
 
   const createTransactionMutation = useMutation(
-    (data) => axios.post('/api/transactions', data, {
+    (data) => axios.post('${apiBase}/api/transactions', data, {
       headers: {
         Authorization: `Bearer ${token}`
       }

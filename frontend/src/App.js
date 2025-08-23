@@ -6,6 +6,9 @@ import AddTransaction from './components/AddTransaction';
 import Analytics from './components/Analytics';
 import './App.css';
 
+// Add this line at the top!
+const apiBase = process.env.REACT_APP_API_URL;
+
 function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -19,8 +22,8 @@ function App() {
 
       if (savedToken && savedUser) {
         try {
-          // Verify token with backend
-          const response = await fetch('http://localhost:5000/api/auth/profile', {
+          // Use apiBase for backend requests!
+          const response = await fetch(`${apiBase}/api/auth/profile`, {
             headers: {
               'Authorization': `Bearer ${savedToken}`
             }

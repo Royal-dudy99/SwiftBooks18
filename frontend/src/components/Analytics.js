@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -26,11 +27,12 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+const apiBase = process.env.REACT_APP_API_URL;
 
 const Analytics = ({ currency }) => {
   const { data: transactions, isLoading } = useQuery(
     'transactions',
-    () => axios.get('/api/transactions').then(res => res.data)
+    () => axios.get('${apiBase}/api/transactions').then(res => res.data)
   );
 
   const getCategoryData = (transactions) => {
